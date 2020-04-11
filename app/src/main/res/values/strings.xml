@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">AngryBirdsMvi</string>
+
+    <string name="desc_bird_image">Bird image</string>
+</resources>
