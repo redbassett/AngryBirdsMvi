@@ -9,7 +9,7 @@ import com.redbassett.angrybirdsmvi.ui.base.BaseActivity
 import kotlinx.android.synthetic.main.activity_main.*
 import javax.inject.Inject
 
-class MainActivity : BaseActivity<ListState>() {
+class ListActivity : BaseActivity<ListState>() {
 
     @Inject lateinit var presenter: ListPresenter
 
@@ -27,15 +27,22 @@ class MainActivity : BaseActivity<ListState>() {
         when (state) {
             is Loading -> {
                 loading_bar.visibility = View.VISIBLE
+                error_group.visibility = View.GONE
             }
             is Error -> {
                 loading_bar.visibility = View.GONE
+                error_group.visibility = View.VISIBLE
+                error_message.text = state.error.localizedMessage
                 Toast
                     .makeText(this, state.error.localizedMessage, Toast.LENGTH_LONG)
                     .show()
             }
             is Content -> {
                 loading_bar.visibility = View.GONE
+                error_group.visibility = View.GONE
+                Toast
+                    .makeText(this, "Content loaded", Toast.LENGTH_LONG)
+                    .show()
                 // TODO: 3/31/20 Load content into recyclerview
             }
         }

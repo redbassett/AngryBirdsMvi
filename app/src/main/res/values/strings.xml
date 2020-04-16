@@ -2,4 +2,6 @@
     <string name="app_name">AngryBirdsMvi</string>
 
     <string name="desc_bird_image">Bird image</string>
+
+    <string name="error_message_heading">An error has occurred!</string>
 </resources>

@@ -1,26 +1,32 @@
 package com.redbassett.angrybirdsmvi.ui.list
 
-import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.liveData
+import com.redbassett.angrybirdsmvi.data.BirdRepository
 import com.redbassett.angrybirdsmvi.ui.base.BasePresenter
-import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers
 import javax.inject.Inject
 
-class ListPresenter @Inject constructor() : BasePresenter<MainActivity>() {
+class ListPresenter @Inject constructor(val repository: BirdRepository)
+    : BasePresenter<ListActivity>() {
 
-    private val state = MutableLiveData<ListState>(Loading)
+    private val state = liveData(Dispatchers.IO) {
+        emit(Loading)
 
-    override fun bindView(view: MainActivity) {
+        emit(Content(repository.getAllBirds()))
+    }
+
+    override fun bindView(view: ListActivity) {
         view.apply {
             bindState(state)
         }
     }
 
-    init {
-        GlobalScope.launch {
-            delay(5000L)
-            withContext(Dispatchers.Main) {
-                state.value = Error(Throwable("Some error"))
-            }
-        }
-    }
+//    init {
+//        GlobalScope.launch {
+//            delay(5000L)
+//            withContext(Dispatchers.Main) {
+//                state.value = Error(Throwable("Some error"))
+//            }
+//        }
+//    }
 }
