@@ -20,13 +20,4 @@ class ListPresenter @Inject constructor(val repository: BirdRepository)
             bindState(state)
         }
     }
-
-//    init {
-//        GlobalScope.launch {
-//            delay(5000L)
-//            withContext(Dispatchers.Main) {
-//                state.value = Error(Throwable("Some error"))
-//            }
-//        }
-//    }
 }
