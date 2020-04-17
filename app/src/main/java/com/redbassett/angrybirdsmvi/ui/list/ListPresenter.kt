@@ -12,7 +12,11 @@ class ListPresenter @Inject constructor(val repository: BirdRepository)
     private val state = liveData(Dispatchers.IO) {
         emit(Loading)
 
-        emit(Content(repository.getAllBirds()))
+        try {
+            emit(Content(repository.getAllBirds()))
+        } catch (e: Exception) {
+            emit (Error(e))
+        }
     }
 
     override fun bindView(view: ListActivity) {
