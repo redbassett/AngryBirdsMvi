@@ -5,7 +5,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
-import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -55,7 +54,7 @@ class ListActivity : BaseActivity<ListState>(), BirdListViewAdapter.LastItemNoti
                 error_group.visibility = View.VISIBLE
                 bird_list.visibility = View.GONE
                 error_message.text = state.error.localizedMessage
-                quickToast(state.error.localizedMessage)
+                quickToast(state.error.localizedMessage ?: "Unknown error")
             }
             is Content -> {
                 loading_bar.visibility = View.GONE
@@ -72,16 +71,14 @@ class ListActivity : BaseActivity<ListState>(), BirdListViewAdapter.LastItemNoti
     override fun onLastItemReached() = quickToast("Loading more content")
 }
 
-class BirdListViewAdapter(val notifier: LastItemNotifier)
+class BirdListViewAdapter(private val notifier: LastItemNotifier)
     : RecyclerView.Adapter<BirdListViewAdapter.ListViewHolder>() {
 
     var birds: List<Bird> = arrayListOf()
 
     sealed class ListViewHolder(rootView: View) : RecyclerView.ViewHolder(rootView) {
 
-        class LoadingViewHolder(view: View) : ListViewHolder(view) {
-            val progressBar: ProgressBar = view.findViewById(R.id.loading_more_bar)
-        }
+        class LoadingViewHolder(view: View) : ListViewHolder(view)
 
         class BirdViewHolder(view: View) : ListViewHolder(view) {
             val name: TextView = view.findViewById(R.id.bird_name)
@@ -104,7 +101,7 @@ class BirdListViewAdapter(val notifier: LastItemNotifier)
         }
     }
 
-    override fun onBindViewHolder(holder: BirdListViewAdapter.ListViewHolder, position: Int) {
+    override fun onBindViewHolder(holder: ListViewHolder, position: Int) {
         when (holder) {
             is ListViewHolder.BirdViewHolder -> {
                 val bird = birds[position]
@@ -135,8 +132,8 @@ class BirdListViewAdapter(val notifier: LastItemNotifier)
     }
 
     companion object {
-        const val ITEM_TYPE_BIRD = 0;
-        const val ITEM_TYPE_LOADING = 1;
+        const val ITEM_TYPE_BIRD = 0
+        const val ITEM_TYPE_LOADING = 1
     }
 
     interface LastItemNotifier {

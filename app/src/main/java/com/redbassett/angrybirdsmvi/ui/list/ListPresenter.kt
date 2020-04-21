@@ -6,7 +6,7 @@ import com.redbassett.angrybirdsmvi.ui.base.BasePresenter
 import kotlinx.coroutines.Dispatchers
 import javax.inject.Inject
 
-class ListPresenter @Inject constructor(val repository: BirdRepository)
+class ListPresenter @Inject constructor(private val repository: BirdRepository)
     : BasePresenter<ListActivity>() {
 
     private val state = liveData(Dispatchers.IO) {

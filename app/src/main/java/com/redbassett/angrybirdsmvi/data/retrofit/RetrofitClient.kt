@@ -7,7 +7,7 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
 object RetrofitClient {
-    val service by lazy {
+    val service: BirdService by lazy {
         Retrofit.Builder()
             .baseUrl("https://angry-birds-api.herokuapp.com/")
             .addConverterFactory(GsonConverterFactory.create())
