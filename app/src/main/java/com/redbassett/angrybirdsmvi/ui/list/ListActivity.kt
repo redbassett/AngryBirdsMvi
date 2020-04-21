@@ -18,7 +18,7 @@ import com.redbassett.angrybirdsmvi.util.quickToast
 import kotlinx.android.synthetic.main.activity_list.*
 import javax.inject.Inject
 
-class ListActivity : BaseActivity<ListState>() {
+class ListActivity : BaseActivity<ListState>(), BirdListViewAdapter.LastItemNotifier {
 
     @Inject lateinit var presenter: ListPresenter
 
@@ -35,7 +35,7 @@ class ListActivity : BaseActivity<ListState>() {
         presenter.bindView(this)
 
         viewManager = LinearLayoutManager(this)
-        viewAdapter = BirdListViewAdapter()
+        viewAdapter = BirdListViewAdapter(this)
         bird_list.apply {
             setHasFixedSize(true)
             layoutManager = viewManager
@@ -68,9 +68,11 @@ class ListActivity : BaseActivity<ListState>() {
             }
         }
     }
+
+    override fun onLastItemReached() = quickToast("Loading more content")
 }
 
-class BirdListViewAdapter
+class BirdListViewAdapter(val notifier: LastItemNotifier)
     : RecyclerView.Adapter<BirdListViewAdapter.ListViewHolder>() {
 
     var birds: List<Bird> = arrayListOf()
@@ -117,6 +119,9 @@ class BirdListViewAdapter
                         .into(image)
                 }
             }
+            is ListViewHolder.LoadingViewHolder -> {
+                notifier.onLastItemReached()
+            }
         }
     }
 
@@ -132,5 +137,9 @@ class BirdListViewAdapter
     companion object {
         const val ITEM_TYPE_BIRD = 0;
         const val ITEM_TYPE_LOADING = 1;
+    }
+
+    interface LastItemNotifier {
+        fun onLastItemReached()
     }
 }
