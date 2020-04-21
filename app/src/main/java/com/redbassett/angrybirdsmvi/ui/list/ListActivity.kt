@@ -7,7 +7,6 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.ProgressBar
 import android.widget.TextView
-import android.widget.Toast
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
@@ -15,6 +14,7 @@ import com.redbassett.angrybirdsmvi.AngryBirdsApp
 import com.redbassett.angrybirdsmvi.R
 import com.redbassett.angrybirdsmvi.data.model.Bird
 import com.redbassett.angrybirdsmvi.ui.base.BaseActivity
+import com.redbassett.angrybirdsmvi.util.quickToast
 import kotlinx.android.synthetic.main.activity_list.*
 import javax.inject.Inject
 
@@ -55,9 +55,7 @@ class ListActivity : BaseActivity<ListState>() {
                 error_group.visibility = View.VISIBLE
                 bird_list.visibility = View.GONE
                 error_message.text = state.error.localizedMessage
-                Toast
-                    .makeText(this, state.error.localizedMessage, Toast.LENGTH_LONG)
-                    .show()
+                quickToast(state.error.localizedMessage)
             }
             is Content -> {
                 loading_bar.visibility = View.GONE
