@@ -9,7 +9,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 object RetrofitClient {
     val service by lazy {
         Retrofit.Builder()
-            .baseUrl("https://redbassett-angrybirds.builtwithdark.com")
+            .baseUrl("https://angry-birds-api.herokuapp.com/")
             .addConverterFactory(GsonConverterFactory.create())
             .client(
                 OkHttpClient().newBuilder()
