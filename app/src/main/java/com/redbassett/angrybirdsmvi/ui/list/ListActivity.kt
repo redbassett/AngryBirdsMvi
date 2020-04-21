@@ -15,7 +15,7 @@ import com.redbassett.angrybirdsmvi.AngryBirdsApp
 import com.redbassett.angrybirdsmvi.R
 import com.redbassett.angrybirdsmvi.data.model.Bird
 import com.redbassett.angrybirdsmvi.ui.base.BaseActivity
-import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.android.synthetic.main.activity_list.*
 import javax.inject.Inject
 
 class ListActivity : BaseActivity<ListState>() {
@@ -30,7 +30,7 @@ class ListActivity : BaseActivity<ListState>() {
 
         super.onCreate(savedInstanceState)
 
-        setContentView(R.layout.activity_main)
+        setContentView(R.layout.activity_list)
 
         presenter.bindView(this)
 
