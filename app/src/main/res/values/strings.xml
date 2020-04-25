@@ -4,4 +4,6 @@
     <string name="desc_bird_image">Bird image</string>
 
     <string name="error_message_heading">An error has occurred!</string>
+
+    <string name="no_more_birds">No more birds to load</string>
 </resources>

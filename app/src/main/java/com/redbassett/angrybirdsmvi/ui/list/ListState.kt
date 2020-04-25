@@ -7,5 +7,5 @@ import com.redbassett.angrybirdsmvi.ui.base.BaseState
 sealed class ListState : BaseState
 
 data class Error(val error: Throwable) : ListState()
-data class Content(val birds: List<Bird>) : ListState()
+data class Content(val birds: List<Bird>, val lastPageReached: Boolean = false) : ListState()
 object Loading : ListState()

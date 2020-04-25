@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
+import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -15,6 +16,7 @@ import com.redbassett.angrybirdsmvi.data.model.Bird
 import com.redbassett.angrybirdsmvi.ui.base.BaseActivity
 import com.redbassett.angrybirdsmvi.util.quickToast
 import kotlinx.android.synthetic.main.activity_list.*
+import timber.log.Timber
 import javax.inject.Inject
 
 class ListActivity : BaseActivity<ListState>(), BirdListViewAdapter.LastItemNotifier {
@@ -23,6 +25,9 @@ class ListActivity : BaseActivity<ListState>(), BirdListViewAdapter.LastItemNoti
 
     private lateinit var viewAdapter: RecyclerView.Adapter<*>
     private lateinit var viewManager: RecyclerView.LayoutManager
+
+    var notifier: BirdListViewAdapter.LastItemNotifier? = null
+    private var notifierBubble = true
 
     override fun onCreate(savedInstanceState: Bundle?) {
         (applicationContext as AngryBirdsApp).appComponent.inject(this)
@@ -61,6 +66,14 @@ class ListActivity : BaseActivity<ListState>(), BirdListViewAdapter.LastItemNoti
                 error_group.visibility = View.GONE
                 bird_list.visibility = View.VISIBLE
                 (viewAdapter as BirdListViewAdapter).apply {
+
+                    if (state.lastPageReached) {
+                        notifier = null
+                        lastPageReached = true
+                    } else {
+                        notifierBubble = true
+                    }
+
                     birds = state.birds
                     notifyDataSetChanged()
                 }
@@ -68,13 +81,19 @@ class ListActivity : BaseActivity<ListState>(), BirdListViewAdapter.LastItemNoti
         }
     }
 
-    override fun onLastItemReached() = quickToast("Loading more content")
+    override fun onLastItemReached() {
+        if (notifierBubble) {
+            notifier?.onLastItemReached()
+            notifierBubble = false
+        }
+    }
 }
 
 class BirdListViewAdapter(private val notifier: LastItemNotifier)
     : RecyclerView.Adapter<BirdListViewAdapter.ListViewHolder>() {
 
     var birds: List<Bird> = arrayListOf()
+    var lastPageReached = false
 
     sealed class ListViewHolder(rootView: View) : RecyclerView.ViewHolder(rootView) {
 
@@ -117,7 +136,16 @@ class BirdListViewAdapter(private val notifier: LastItemNotifier)
                 }
             }
             is ListViewHolder.LoadingViewHolder -> {
+                Timber.i("Last item reached")
                 notifier.onLastItemReached()
+
+                if (lastPageReached) {
+                    holder.itemView.apply {
+                        findViewById<ProgressBar>(R.id.loading_more_bar).visibility = View.GONE
+                        findViewById<TextView>(R.id.loading_more_end_of_list_text)
+                            .visibility = View.VISIBLE
+                    }
+                }
             }
         }
     }
