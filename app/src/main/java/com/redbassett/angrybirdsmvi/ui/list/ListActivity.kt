@@ -1,10 +1,7 @@
 package com.redbassett.angrybirdsmvi.ui.list
 
 import android.os.Bundle
-import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
-import android.widget.ImageView
 import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -16,18 +13,16 @@ import com.redbassett.angrybirdsmvi.data.model.Bird
 import com.redbassett.angrybirdsmvi.ui.base.BaseActivity
 import com.redbassett.angrybirdsmvi.util.quickToast
 import kotlinx.android.synthetic.main.activity_list.*
-import timber.log.Timber
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import javax.inject.Inject
 
-class ListActivity : BaseActivity<ListState>(), BirdListViewAdapter.LastItemNotifier {
+@Suppress("EXPERIMENTAL_API_USAGE")
+class ListActivity : BaseActivity<ListState>() {
 
     @Inject lateinit var presenter: ListPresenter
 
-    private lateinit var viewAdapter: RecyclerView.Adapter<*>
+    private lateinit var viewAdapter: BirdListViewAdapter
     private lateinit var viewManager: RecyclerView.LayoutManager
-
-    var notifier: BirdListViewAdapter.LastItemNotifier? = null
-    private var notifierBubble = true
 
     override fun onCreate(savedInstanceState: Bundle?) {
         (applicationContext as AngryBirdsApp).appComponent.inject(this)
@@ -39,12 +34,15 @@ class ListActivity : BaseActivity<ListState>(), BirdListViewAdapter.LastItemNoti
         presenter.bindView(this)
 
         viewManager = LinearLayoutManager(this)
-        viewAdapter = BirdListViewAdapter(this)
+        viewAdapter = BirdListViewAdapter()
+
         bird_list.apply {
             setHasFixedSize(true)
             layoutManager = viewManager
             adapter = viewAdapter
         }
+
+        presenter.loadMoreFlow.postValue(viewAdapter.loadMoreFlow)
     }
 
     override fun render(state: ListState) {
@@ -65,106 +63,52 @@ class ListActivity : BaseActivity<ListState>(), BirdListViewAdapter.LastItemNoti
                 loading_bar.visibility = View.GONE
                 error_group.visibility = View.GONE
                 bird_list.visibility = View.VISIBLE
-                (viewAdapter as BirdListViewAdapter).apply {
-
-                    if (state.lastPageReached) {
-                        notifier = null
-                        lastPageReached = true
-                    } else {
-                        notifierBubble = true
-                    }
-
-                    birds = state.birds
-                    notifyDataSetChanged()
-                }
+                viewAdapter.setData(state.birds, state.lastPageReached)
+                viewAdapter.notifyDataSetChanged()
             }
-        }
-    }
-
-    override fun onLastItemReached() {
-        if (notifierBubble) {
-            notifier?.onLastItemReached()
-            notifierBubble = false
         }
     }
 }
 
-class BirdListViewAdapter(private val notifier: LastItemNotifier)
-    : RecyclerView.Adapter<BirdListViewAdapter.ListViewHolder>() {
+@ExperimentalCoroutinesApi
+class BirdListViewAdapter : ContinuousScrollAdapter<Bird>(
+    BirdContentViewHolder::class,
+    R.layout.bird_list_item,
+    LoadingViewHolder::class,
+    R.layout.load_more_list_item
+) {
 
-    var birds: List<Bird> = arrayListOf()
-    var lastPageReached = false
+    override fun onBindContentViewHolder(holder: LoadMoreViewHolder.ContentHolder, position: Int) {
+        val bird = data[position]
+        (holder as BirdContentViewHolder).apply {
+            itemView.apply {
+                this.findViewById<TextView>(R.id.bird_name).text = bird.name
+                this.findViewById<TextView>(R.id.bird_description).text = bird.description
 
-    sealed class ListViewHolder(rootView: View) : RecyclerView.ViewHolder(rootView) {
-
-        class LoadingViewHolder(view: View) : ListViewHolder(view)
-
-        class BirdViewHolder(view: View) : ListViewHolder(view) {
-            val name: TextView = view.findViewById(R.id.bird_name)
-            val description: TextView = view.findViewById(R.id.bird_description)
-            val image: ImageView = view.findViewById(R.id.bird_image)
-        }
-    }
-
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ListViewHolder {
-        fun inflate(isBirdItem: Boolean): View {
-            return LayoutInflater.from(parent.context)
-                .inflate(if (isBirdItem) R.layout.bird_list_item else R.layout.load_more_list_item,
-                parent, false)
-        }
-
-        return if (viewType == ITEM_TYPE_BIRD) {
-            ListViewHolder.BirdViewHolder(inflate(true))
-        } else {
-            ListViewHolder.LoadingViewHolder(inflate(false))
-        }
-    }
-
-    override fun onBindViewHolder(holder: ListViewHolder, position: Int) {
-        when (holder) {
-            is ListViewHolder.BirdViewHolder -> {
-                val bird = birds[position]
-                holder.apply {
-                    name.text = bird.name
-                    description.text = bird.description
-
-                    Glide
-                        .with(this.itemView)
-                        .load("https://angry-birds-api.herokuapp.com/img/thumbs/${bird.image}.jpg")
-                        .centerCrop()
-                        .into(image)
-                }
-            }
-            is ListViewHolder.LoadingViewHolder -> {
-                Timber.i("Last item reached")
-                notifier.onLastItemReached()
-
-                if (lastPageReached) {
-                    holder.itemView.apply {
-                        findViewById<ProgressBar>(R.id.loading_more_bar).visibility = View.GONE
-                        findViewById<TextView>(R.id.loading_more_end_of_list_text)
-                            .visibility = View.VISIBLE
-                    }
-                }
+                Glide
+                    .with(this)
+                    .load("https://angry-birds-api.herokuapp.com/img/thumbs/${bird.image}.jpg")
+                    .centerCrop()
+                    .into(itemView.findViewById(R.id.bird_image))
             }
         }
     }
 
-    override fun getItemCount(): Int = birds.count() + 1
-
-    override fun getItemViewType(position: Int): Int {
-        return if (position < birds.count())
-            ITEM_TYPE_BIRD
-        else
-            ITEM_TYPE_LOADING
+    override fun onBindLoadingViewHolder(
+        holder: LoadMoreViewHolder.LoadingHolder,
+        position: Int,
+        lastPageReached: Boolean
+    ) {
+        (holder as LoadingViewHolder).apply {
+            itemView.apply {
+                findViewById<ProgressBar>(R.id.loading_more_bar).visibility =
+                    if (lastPageReached) View.GONE else View.VISIBLE
+                findViewById<TextView>(R.id.loading_more_end_of_list_text).visibility =
+                    if (lastPageReached) View.VISIBLE else View.GONE
+            }
+        }
     }
 
-    companion object {
-        const val ITEM_TYPE_BIRD = 0
-        const val ITEM_TYPE_LOADING = 1
-    }
-
-    interface LastItemNotifier {
-        fun onLastItemReached()
-    }
+    class BirdContentViewHolder(itemView: View) : LoadMoreViewHolder.ContentHolder(itemView)
+    class LoadingViewHolder(itemView: View) : LoadMoreViewHolder.LoadingHolder(itemView)
 }
