@@ -24,7 +24,8 @@ class ListPresenter @Inject constructor(private val repository: BirdRepository)
     private val loadMoreObserver = Observer<Flow<Unit>> {
         viewModelScope.launch {
             it.collect {
-                onLastItemReached()
+                currentPage++
+                loadBirds(currentPage)
             }
         }
     }
@@ -63,8 +64,4 @@ class ListPresenter @Inject constructor(private val repository: BirdRepository)
         }
     }
 
-    private fun onLastItemReached() {
-        currentPage++
-        loadBirds(currentPage)
-    }
 }
