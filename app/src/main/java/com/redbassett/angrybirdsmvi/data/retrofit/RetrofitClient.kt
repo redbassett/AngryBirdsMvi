@@ -11,12 +11,13 @@ object RetrofitClient {
         Retrofit.Builder()
             .baseUrl("https://angry-birds-api.herokuapp.com/")
             .addConverterFactory(GsonConverterFactory.create())
-            .client(
-                OkHttpClient().newBuilder()
-                    .addInterceptor(HttpLoggingInterceptor().apply {
-                        level = if (BuildConfig.DEBUG) HttpLoggingInterceptor.Level.BODY else HttpLoggingInterceptor.Level.NONE
-                    })
-                    .build())
+            .client(OkHttpClient().newBuilder()
+                .addInterceptor(HttpLoggingInterceptor().apply {
+                    level =
+                        if (BuildConfig.DEBUG) HttpLoggingInterceptor.Level.BODY
+                        else HttpLoggingInterceptor.Level.NONE
+                })
+                .build())
             .build()
             .create(BirdService::class.java)
     }
