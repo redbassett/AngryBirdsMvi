@@ -5,8 +5,11 @@ import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import javax.inject.Inject
+import javax.inject.Singleton
 
-object RetrofitClient {
+@Singleton
+class RetrofitClient @Inject constructor() {
     val service: BirdService by lazy {
         Retrofit.Builder()
             .baseUrl("https://angry-birds-api.herokuapp.com/")
